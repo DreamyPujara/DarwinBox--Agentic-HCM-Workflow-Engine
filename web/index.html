@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Darwinbox Agentic HCM</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #182230;
+        --muted: #5d6b82;
+        --line: #d8e0ea;
+        --panel: #ffffff;
+        --soft: #f5f7fa;
+        --brand: #0f6b8f;
+        --brand-2: #2e7d59;
+        --warn: #a15c07;
+        --bad: #a33a3a;
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        margin: 0;
+        font-family: Inter, Segoe UI, Roboto, Arial, sans-serif;
+        background: #eef2f6;
+        color: var(--ink);
+      }
+
+      button, input, textarea { font: inherit; }
+
+      .shell {
+        min-height: 100vh;
+        display: grid;
+        grid-template-rows: 56px 1fr;
+      }
+
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 20px;
+        background: #102033;
+        color: white;
+        border-bottom: 3px solid var(--brand);
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 700;
+      }
+
+      .mark {
+        width: 26px;
+        height: 26px;
+        border-radius: 6px;
+        display: grid;
+        place-items: center;
+        background: var(--brand);
+        color: white;
+        font-size: 14px;
+      }
+
+      .status {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #dbe8f5;
+        font-size: 13px;
+      }
+
+      .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #4ad27d;
+      }
+
+      main {
+        display: grid;
+        grid-template-columns: minmax(360px, 0.95fr) minmax(420px, 1.05fr);
+        gap: 14px;
+        padding: 14px;
+        min-height: 0;
+      }
+
+      .pane {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        min-height: 0;
+        overflow: hidden;
+      }
+
+      .chat {
+        display: grid;
+        grid-template-rows: 52px 1fr auto;
+      }
+
+      .pane-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 14px;
+        border-bottom: 1px solid var(--line);
+        background: #fbfcfe;
+        font-weight: 700;
+      }
+
+      .subtle {
+        color: var(--muted);
+        font-weight: 500;
+        font-size: 12px;
+      }
+
+      .messages {
+        overflow: auto;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .message {
+        max-width: 86%;
+        padding: 11px 12px;
+        border-radius: 8px;
+        line-height: 1.45;
+        white-space: pre-wrap;
+      }
+
+      .message.user {
+        align-self: flex-end;
+        background: #dff0f7;
+        border: 1px solid #b7d8e7;
+      }
+
+      .message.assistant {
+        align-self: flex-start;
+        background: var(--soft);
+        border: 1px solid var(--line);
+      }
+
+      form {
+        display: grid;
+        grid-template-columns: 1fr 92px;
+        gap: 10px;
+        padding: 12px;
+        border-top: 1px solid var(--line);
+        background: #fbfcfe;
+      }
+
+      textarea {
+        min-height: 44px;
+        max-height: 120px;
+        resize: vertical;
+        border: 1px solid #b8c4d2;
+        border-radius: 8px;
+        padding: 10px;
+        color: var(--ink);
+      }
+
+      button {
+        border: 0;
+        border-radius: 8px;
+        color: white;
+        background: var(--brand);
+        cursor: pointer;
+        font-weight: 700;
+      }
+
+      button:disabled {
+        opacity: 0.58;
+        cursor: not-allowed;
+      }
+
+      .trace {
+        display: grid;
+        grid-template-rows: 52px auto 1fr;
+      }
+
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+        padding: 12px;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .metric {
+        background: var(--soft);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 10px;
+        min-width: 0;
+      }
+
+      .metric strong {
+        display: block;
+        font-size: 18px;
+        line-height: 1.2;
+        color: var(--ink);
+        overflow-wrap: anywhere;
+      }
+
+      .metric span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .steps {
+        overflow: auto;
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .step {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        overflow: hidden;
+        background: white;
+      }
+
+      .step-head {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        align-items: center;
+        padding: 10px 12px;
+        background: #f8fafc;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .agent {
+        font-weight: 700;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        min-height: 22px;
+        padding: 2px 8px;
+        border-radius: 999px;
+        background: #e9f4ef;
+        color: var(--brand-2);
+        font-size: 12px;
+        font-weight: 700;
+      }
+
+      .step-body {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1px;
+        background: var(--line);
+      }
+
+      pre {
+        margin: 0;
+        padding: 10px;
+        background: white;
+        overflow: auto;
+        max-height: 180px;
+        font-size: 12px;
+        line-height: 1.35;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+      }
+
+      .empty {
+        margin: auto;
+        max-width: 360px;
+        color: var(--muted);
+        text-align: center;
+        line-height: 1.45;
+      }
+
+      .error {
+        color: var(--bad);
+        font-size: 13px;
+        padding: 0 12px 10px;
+      }
+
+      @media (max-width: 900px) {
+        main {
+          grid-template-columns: 1fr;
+        }
+
+        .metrics {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+
+      @media (max-width: 540px) {
+        header {
+          padding: 0 12px;
+        }
+
+        .status span:last-child {
+          display: none;
+        }
+
+        main {
+          padding: 8px;
+        }
+
+        form {
+          grid-template-columns: 1fr;
+        }
+
+        .message {
+          max-width: 100%;
+        }
+
+        .step-body {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script>
+      const { useMemo, useState } = React;
+
+      function samplePrompts() {
+        return [
+          "What is our maternity leave policy?",
+          "Apply for 3 days annual leave starting June 15",
+          "What is my leave balance?",
+          "Fetch the payroll policy for payslip corrections"
+        ];
+      }
+
+      function App() {
+        const [sessionId, setSessionId] = useState(null);
+        const [input, setInput] = useState("What is our maternity leave policy?");
+        const [messages, setMessages] = useState([]);
+        const [lastRun, setLastRun] = useState(null);
+        const [loading, setLoading] = useState(false);
+        const [error, setError] = useState("");
+
+        async function send(text) {
+          const message = text.trim();
+          if (!message || loading) return;
+          setLoading(true);
+          setError("");
+          setInput("");
+          setMessages((items) => [...items, { role: "user", content: message }]);
+          try {
+            const response = await fetch("/api/chat", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ session_id: sessionId, message })
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || "Request failed");
+            setSessionId(data.session_id);
+            setLastRun(data);
+            setMessages((items) => [...items, { role: "assistant", content: data.answer }]);
+          } catch (err) {
+            setError(err.message);
+          } finally {
+            setLoading(false);
+          }
+        }
+
+        const metrics = useMemo(() => {
+          const cost = lastRun?.cost || {};
+          return [
+            ["Route", lastRun?.route?.routes?.join(" + ") || "-"],
+            ["Tokens", cost.actual_tokens || 0],
+            ["Saved", cost.reduction_percent ? `${cost.reduction_percent}%` : "0%"],
+            ["Cost", `$${(cost.estimated_cost_usd || 0).toFixed(6)}`]
+          ];
+        }, [lastRun]);
+
+        return (
+          React.createElement("div", { className: "shell" },
+            React.createElement("header", null,
+              React.createElement("div", { className: "brand" },
+                React.createElement("div", { className: "mark" }, "db"),
+                React.createElement("span", null, "Darwinbox Agentic HCM")
+              ),
+              React.createElement("div", { className: "status" },
+                React.createElement("span", { className: "dot" }),
+                React.createElement("span", null, sessionId ? `Session ${sessionId.slice(0, 8)}` : "Ready")
+              )
+            ),
+            React.createElement("main", null,
+              React.createElement("section", { className: "pane chat" },
+                React.createElement("div", { className: "pane-title" },
+                  React.createElement("span", null, "Conversation"),
+                  React.createElement("span", { className: "subtle" }, loading ? "Running" : "Idle")
+                ),
+                React.createElement("div", { className: "messages" },
+                  messages.length === 0 && React.createElement("div", { className: "empty" },
+                    samplePrompts().map((prompt) =>
+                      React.createElement("button", {
+                        key: prompt,
+                        onClick: () => send(prompt),
+                        style: { display: "block", width: "100%", marginBottom: 8, padding: 10, background: "#eef5f8", color: "#123246", border: "1px solid #cbdce6" }
+                      }, prompt)
+                    )
+                  ),
+                  messages.map((message, index) =>
+                    React.createElement("div", { key: index, className: `message ${message.role}` }, message.content)
+                  )
+                ),
+                React.createElement("div", null,
+                  error && React.createElement("div", { className: "error" }, error),
+                  React.createElement("form", { onSubmit: (event) => { event.preventDefault(); send(input); } },
+                    React.createElement("textarea", {
+                      value: input,
+                      onChange: (event) => setInput(event.target.value),
+                      onKeyDown: (event) => {
+                        if (event.key === "Enter" && !event.shiftKey) {
+                          event.preventDefault();
+                          send(input);
+                        }
+                      }
+                    }),
+                    React.createElement("button", { disabled: loading || !input.trim() }, loading ? "..." : "Send")
+                  )
+                )
+              ),
+              React.createElement("section", { className: "pane trace" },
+                React.createElement("div", { className: "pane-title" },
+                  React.createElement("span", null, "Trace"),
+                  React.createElement("span", { className: "subtle" }, lastRun ? `${lastRun.trace.length} steps` : "No run")
+                ),
+                React.createElement("div", { className: "metrics" },
+                  metrics.map(([label, value]) =>
+                    React.createElement("div", { className: "metric", key: label },
+                      React.createElement("strong", null, value),
+                      React.createElement("span", null, label)
+                    )
+                  )
+                ),
+                React.createElement("div", { className: "steps" },
+                  !lastRun && React.createElement("div", { className: "empty" }, "No trace yet."),
+                  lastRun?.trace?.map((step, index) =>
+                    React.createElement("article", { className: "step", key: `${step.agent}-${index}` },
+                      React.createElement("div", { className: "step-head" },
+                        React.createElement("div", null,
+                          React.createElement("div", { className: "agent" }, step.agent),
+                          React.createElement("div", { className: "subtle" }, step.action)
+                        ),
+                        React.createElement("span", { className: "pill" }, `${step.latency_ms} ms`)
+                      ),
+                      React.createElement("div", { className: "step-body" },
+                        React.createElement("pre", null, JSON.stringify(step.input, null, 2)),
+                        React.createElement("pre", null, JSON.stringify(step.output, null, 2))
+                      )
+                    )
+                  ),
+                  lastRun?.cost && React.createElement("article", { className: "step" },
+                    React.createElement("div", { className: "step-head" },
+                      React.createElement("div", null,
+                        React.createElement("div", { className: "agent" }, "cost-optimizer"),
+                        React.createElement("div", { className: "subtle" }, lastRun.cost.strategy)
+                      ),
+                      React.createElement("span", { className: "pill" }, `${lastRun.cost.tokens_saved} tokens`)
+                    ),
+                    React.createElement("div", { className: "step-body" },
+                      React.createElement("pre", null, JSON.stringify({ naive_all_llm_tokens: lastRun.cost.naive_all_llm_tokens }, null, 2)),
+                      React.createElement("pre", null, JSON.stringify(lastRun.cost, null, 2))
+                    )
+                  )
+                )
+              )
+            )
+          )
+        );
+      }
+
+      ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
+    </script>
+  </body>
+</html>
